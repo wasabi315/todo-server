@@ -1,0 +1,268 @@
+openapi: 3.0.2
+
+info:
+  title: Todo list
+  description: This is a sample todo list api
+  version: 1.0.1
+
+tags:
+  - name: todos
+
+paths:
+  /todos:
+    get:
+      tags:
+        - todos
+      description: Get all todos
+      responses:
+        '200':
+          description: A list of todos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TodoResponse'
+              examples:
+                Todos:
+                  $ref: '#/components/examples/TodosResponse'
+
+    post:
+      tags:
+        - todos
+      description: Create new todo
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoRequestBody'
+            examples:
+              Todo:
+                $ref: '#/components/examples/TodoRequestBody'
+              'Todo without due':
+                $ref: '#/components/examples/TodoRequestBodyNoDue'
+      responses:
+        '201':
+          description: A todo is successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+              examples:
+                Todo:
+                  $ref: '#/components/examples/TodoResponseIncomplete'
+
+  /todos/{todoID}:
+    get:
+      tags:
+        - todos
+      description: Get a todo by `todoID`
+      parameters:
+        - in: path
+          name: todoID
+          schema:
+            type: string
+          required: true
+          description: ID of the todo to get
+      responses:
+        '200':
+          description: A todo object
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+              examples:
+                Todo:
+                  $ref: '#/components/examples/TodoResponseIncomplete'
+        '404':
+          description: A todo with the specified ID was not found
+
+    put:
+      tags:
+        - todos
+      description: Rewrite a todo specified by `todoID`
+      parameters:
+        - in: path
+          name: todoID
+          schema:
+            type: string
+          required: true
+          description: ID of the todo to put
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TodoRequestBody'
+            examples:
+              Todo:
+                $ref: '#/components/examples/TodoRequestBody'
+              'Todo without due':
+                $ref: '#/components/examples/TodoRequestBodyNoDue'
+      responses:
+        '200':
+          description: A todo is successfully rewrited
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+              examples:
+                Todo:
+                  $ref: '#/components/examples/TodoResponseIncomplete'
+
+    delete:
+      tags:
+        - todos
+      description: Delete a todo by `todoID`
+      parameters:
+        - in: path
+          name: todoID
+          schema:
+            type: string
+          required: true
+          description: ID of the todo to delete
+      responses:
+        '200':
+          description: The specified todo is successfully deleted
+        '404':
+          description: A todo with the specified ID was not found
+
+  /todos/{todoID}/complete:
+    put:
+      tags:
+        - todos
+      description: Mark a todo with specified ID as completed
+      parameters:
+        - in: path
+          name: todoID
+          schema:
+            type: string
+          required: true
+          description: ID of the todo to post
+      responses:
+        '200':
+          description: The specified todo is successfully marked as completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+              examples:
+                Todo:
+                  $ref: '#/components/examples/TodoResponseComplete'
+        '404':
+          description: A todo with the specified ID was not found
+
+    delete:
+      tags:
+        - todos
+      description: Mark a todo with specified ID as incompleted
+      parameters:
+        - in: path
+          name: todoID
+          schema:
+            type: string
+          required: true
+          description: ID of the todo to post
+      responses:
+        '200':
+          description: The specified todo is successfully marked as incompleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TodoResponse'
+              examples:
+                Todo:
+                  $ref: '#/components/examples/TodoResponseIncomplete'
+        '404':
+          description: A todo with the specified ID was not found
+
+components:
+  schemas:
+    Todo:
+      type: object
+      properties:
+        name:
+          type: string
+        notes:
+          type: string
+        due:
+          type: string
+          format: date-time
+          nullable: true
+        completed:
+          type: boolean
+
+    TodoRequestBody:
+      $ref: '#/components/schemas/Todo'
+
+    TodoResponse:
+      allOf:
+        - type: object
+          properties:
+            todoID:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            updatedAt:
+              type: string
+              format: date-time
+        - $ref: '#/components/schemas/Todo'
+
+  examples:
+    TodoRequestBody:
+      value:
+        name: 'Some task'
+        notes: 'Some notes'
+        due: '2020-04-16T18:00:00+09:00'
+        completed: false
+    TodoRequestBodyNoDue:
+      value:
+        name: 'Some task'
+        notes: 'Some notes'
+        completed: false
+
+    TodoResponseComplete:
+      value:
+        todoID: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+        createdAt: '2020-04-16T12:00:00+09:00'
+        updatedAt: '2020-04-16T12:00:00+09:00'
+        name: 'Some task'
+        notes: 'Some notes'
+        due: '2020-04-16T18:00:00+09:00'
+        completed: true
+
+    TodoResponseIncomplete:
+      value:
+        todoID: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+        createdAt: '2020-04-16T12:00:00+09:00'
+        updatedAt: '2020-04-16T12:00:00+09:00'
+        name: 'Some task'
+        notes: 'Some notes'
+        due: '2020-04-16T18:00:00+09:00'
+        completed: false
+
+    TodosResponse:
+      value:
+        - todoID: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11'
+          createdAt: '2020-04-16T11:30:00+09:00'
+          updatedAt: '2020-04-16T12:30:00+09:00'
+          name: 'Some task'
+          notes: 'Some notes'
+          due: '2020-04-16T18:00:00+09:00'
+          completed: false
+        - todoID: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12'
+          createdAt: '2020-04-16T11:45:00+09:00'
+          updatedAt: '2020-04-16T12:30:00+09:00'
+          name: 'Another task'
+          notes: 'Another notes'
+          due: '2020-04-16T18:00:00+09:00'
+          completed: true
+        - todoID: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13'
+          createdAt: '2020-04-16T12:00:00+09:00'
+          updatedAt: '2020-04-16T12:00:00+09:00'
+          name: 'Yet another task'
+          notes: 'Yet another notes'
+          completed: false
