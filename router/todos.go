@@ -11,10 +11,10 @@ import (
 )
 
 type TodoRequest struct {
-	Name      string    `json:"name"`
-	Notes     string    `json:"notes"`
-	Due       time.Time `json:"due"`
-	Completed bool      `json:"completed"`
+	Name      string     `json:"name"`
+	Notes     string     `json:"notes"`
+	Due       *time.Time `json:"due"`
+	Completed bool       `json:"completed"`
 }
 
 func (h *Handlers) GetTodos(c echo.Context) error {

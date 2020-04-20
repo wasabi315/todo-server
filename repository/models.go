@@ -12,6 +12,6 @@ type Todo struct {
 	UpdatedAt time.Time
 	Name      string
 	Notes     string
-	Due       time.Time
+	Due       *time.Time
 	Completed bool
 }

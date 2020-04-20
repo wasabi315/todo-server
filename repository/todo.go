@@ -9,7 +9,7 @@ import (
 type TodoArg struct {
 	Name      string
 	Notes     string
-	Due       time.Time
+	Due       *time.Time
 	Completed bool
 }
 

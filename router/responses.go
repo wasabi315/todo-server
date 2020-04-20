@@ -9,13 +9,13 @@ import (
 )
 
 type TodoResponse struct {
-	ID        uuid.UUID `json:"todoID"`
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	Name      string    `json:"name"`
-	Notes     string    `json:"notes"`
+	ID        uuid.UUID  `json:"todoID"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	Name      string     `json:"name"`
+	Notes     string     `json:"notes"`
 	Due       *time.Time `json:"due,omitempty"`
-	Completed bool      `json:"completed"`
+	Completed bool       `json:"completed"`
 }
 
 func formatTodo(todo *repository.Todo) TodoResponse {
