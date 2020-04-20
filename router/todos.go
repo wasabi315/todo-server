@@ -20,7 +20,7 @@ type TodoRequest struct {
 func (h *Handlers) GetTodos(c echo.Context) error {
 	res, err := h.Repo.ReadTodos()
 	if err != nil {
-		return handleError(err)
+		return InternalServerError(err)
 	}
 	return c.JSON(http.StatusOK, formatTodos(res))
 }
@@ -29,7 +29,12 @@ func (h *Handlers) GetTodoByID(c echo.Context) error {
 	todoID := getParamAsUUID(c, params.TodoID)
 	todo, err := h.Repo.ReadTodoByID(todoID)
 	if err != nil {
-		return handleError(err)
+		switch err {
+		case repository.ErrNotFound:
+			return NotFound(err)
+		default:
+			return InternalServerError(err)
+		}
 	}
 
 	return c.JSON(http.StatusOK, formatTodo(todo))
@@ -38,14 +43,14 @@ func (h *Handlers) GetTodoByID(c echo.Context) error {
 func (h *Handlers) PostTodo(c echo.Context) error {
 	var req TodoRequest
 	if err := c.Bind(&req); err != nil {
-		return handleError(err)
+		return BadRequest(err)
 	}
 	var todoArg repository.TodoArg
 	copier.Copy(&todoArg, req)
 
 	todo, err := h.Repo.CreateTodo(todoArg)
 	if err != nil {
-		return handleError(err)
+		return InternalServerError(err)
 	}
 
 	return c.JSON(http.StatusOK, formatTodo(todo))
@@ -55,14 +60,19 @@ func (h *Handlers) PutTodo(c echo.Context) error {
 	todoID := getParamAsUUID(c, params.TodoID)
 	var req TodoRequest
 	if err := c.Bind(&req); err != nil {
-		return handleError(err)
+		return BadRequest(err)
 	}
 	var todoArg repository.TodoArg
 	copier.Copy(&todoArg, req)
 
 	todo, err := h.Repo.UpdateTodo(todoID, todoArg)
 	if err != nil {
-		return handleError(err)
+		switch err {
+		case repository.ErrNotFound:
+			return NotFound(err)
+		default:
+			return InternalServerError(err)
+		}
 	}
 
 	return c.JSON(http.StatusOK, formatTodo(todo))
@@ -73,7 +83,12 @@ func (h *Handlers) DeleteTodo(c echo.Context) error {
 
 	err := h.Repo.DeleteTodo(todoID)
 	if err != nil {
-		return handleError(err)
+		switch err {
+		case repository.ErrNotFound:
+			return NotFound(err)
+		default:
+			return InternalServerError(err)
+		}
 	}
 
 	return c.NoContent(http.StatusNoContent)
@@ -84,7 +99,12 @@ func (h *Handlers) SetTodoComplete(c echo.Context) error {
 
 	err := h.Repo.SetTodoCompleted(todoID)
 	if err != nil {
-		return handleError(err)
+		switch err {
+		case repository.ErrNotFound:
+			return NotFound(err)
+		default:
+			return InternalServerError(err)
+		}
 	}
 
 	return c.NoContent(http.StatusOK)
@@ -95,7 +115,12 @@ func (h *Handlers) SetTodoIncomplete(c echo.Context) error {
 
 	err := h.Repo.SetTodoIncompleted(todoID)
 	if err != nil {
-		return handleError(err)
+		switch err {
+		case repository.ErrNotFound:
+			return NotFound(err)
+		default:
+			return InternalServerError(err)
+		}
 	}
 
 	return c.NoContent(http.StatusOK)

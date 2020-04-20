@@ -1,14 +1,36 @@
 package router
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"runtime/debug"
 
 	"github.com/labstack/echo/v4"
-	"github.com/wasabi315/todo-server/repository"
 )
+
+func HTTPError(code int, err interface{}) error {
+	switch v := err.(type) {
+	case []interface{}:
+		if len(v) == 0 {
+			HTTPError(code, nil)
+		}
+		return HTTPError(code, v[0])
+	case nil:
+		return echo.NewHTTPError(code)
+	case string:
+		return echo.NewHTTPError(code, v)
+	default:
+		return echo.NewHTTPError(code, v)
+	}
+}
+
+func NotFound(err ...interface{}) error {
+	return HTTPError(http.StatusNotFound, err)
+}
+
+func BadRequest(err ...interface{}) error {
+	return HTTPError(http.StatusBadRequest, err)
+}
 
 type InternalError struct {
 	Err   error
@@ -19,27 +41,10 @@ func (i *InternalError) Error() string {
 	return fmt.Sprintf("%s\n%s", i.Err.Error(), i.Stack)
 }
 
-var (
-	codeStatusMap = map[repository.ErrorCode]int{
-		repository.ErrNotFound: http.StatusNotFound,
-	}
-)
-
-func handleError(err error) error {
-	switch v := err.(type) {
-	case nil:
-		return nil
-	case *repository.GeneralError:
-		code, ok := codeStatusMap[v.Code]
-		if !ok {
-			return &InternalError{
-				Err:   errors.New(fmt.Sprintf("Unknown error code: %v", v.Code)),
-				Stack: debug.Stack(),
-			}
-		}
-		return echo.NewHTTPError(code, v.Error())
-	default:
-		return &InternalError{err, debug.Stack()}
+func InternalServerError(err error) error {
+	return &InternalError{
+		Err:   err,
+		Stack: debug.Stack(),
 	}
 }
 
@@ -49,27 +54,20 @@ func HTTPErrorHandler(err error, c echo.Context) {
 		body interface{}
 	)
 
-	switch v := err.(type) {
+	switch e := err.(type) {
 	case nil:
 		return
 	case *echo.HTTPError:
-		if v.Internal != nil {
-			if herr, ok := v.Internal.(*echo.HTTPError); ok {
-				v = herr
+		code = e.Code
+		if e.Internal != nil {
+			if herr, ok := e.Internal.(*echo.HTTPError); ok {
+				e = herr
 			}
 		}
-		switch m := v.Message.(type) {
-		case string:
-			body = echo.Map{"message": m}
-		case error:
-			body = echo.Map{"message": m.Error()}
-		default:
-			body = echo.Map{"message": m}
-		}
-		code = v.Code
+		body = e.Message
 	default:
-		body = echo.Map{"message": http.StatusText(http.StatusInternalServerError)}
 		code = http.StatusInternalServerError
+		body = echo.Map{"message": http.StatusText(http.StatusInternalServerError)}
 	}
 
 	if !c.Response().Committed {

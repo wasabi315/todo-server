@@ -7,9 +7,12 @@ import (
 )
 
 func (repo *MapRepository) loadTodo(todoID uuid.UUID) (*Todo, error) {
+	if todoID == uuid.Nil {
+		return nil, ErrNilID
+	}
 	todo, ok := repo.todos[todoID]
 	if !ok {
-		return nil, NotFound("A todo with the specified ID was not found.")
+		return nil, ErrNotFound
 	}
 	return todo, nil
 }
