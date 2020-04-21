@@ -1,0 +1,11 @@
+/vendor/
+/docs/
+/.git/
+
+.gitignore
+.gitmodules
+.dockerignore
+docker-compose.yaml
+README.md
+
+.DS_Store
